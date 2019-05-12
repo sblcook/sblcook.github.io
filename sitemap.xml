@@ -3,36 +3,36 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://samcook.dev/posts/</loc>
+    <loc>https://www.sblcook.dev/posts/</loc>
     <lastmod>2019-05-12T20:30:04+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://samcook.dev/</loc>
+    <loc>https://www.sblcook.dev/</loc>
     <lastmod>2019-05-12T20:30:04+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://samcook.dev/tags/</loc>
+    <loc>https://www.sblcook.dev/tags/</loc>
     <lastmod>2019-05-12T20:30:04+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://samcook.dev/posts/test-post/</loc>
+    <loc>https://www.sblcook.dev/posts/test-post/</loc>
     <lastmod>2019-05-12T20:30:04+02:00</lastmod>
   </url>
   
   <url>
-    <loc>https://samcook.dev/tags/tag1/</loc>
+    <loc>https://www.sblcook.dev/tags/tag1/</loc>
     <lastmod>2019-05-12T20:30:04+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://samcook.dev/tags/tag2/</loc>
+    <loc>https://www.sblcook.dev/tags/tag2/</loc>
     <lastmod>2019-05-12T20:30:04+02:00</lastmod>
     <priority>0</priority>
   </url>

@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Sam Cook</title>
-    <link>https://samcook.dev/</link>
+    <link>https://www.sblcook.dev/</link>
     <description>Recent content on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 12 May 2019 20:30:04 +0200</lastBuildDate>
     
-	<atom:link href="https://samcook.dev/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://www.sblcook.dev/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Test Post</title>
-      <link>https://samcook.dev/posts/test-post/</link>
+      <link>https://www.sblcook.dev/posts/test-post/</link>
       <pubDate>Sun, 12 May 2019 20:30:04 +0200</pubDate>
       
-      <guid>https://samcook.dev/posts/test-post/</guid>
+      <guid>https://www.sblcook.dev/posts/test-post/</guid>
       <description>This is my test post. Here is it is!</description>
     </item>
     
