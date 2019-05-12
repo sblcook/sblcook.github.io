@@ -2,30 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Sam Cook</title>
-    <link>https://www.sblcook.dev/tags/</link>
+    <link>https://www.samcook.dev/tags/</link>
     <description>Recent content in Tags on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sun, 12 May 2019 20:30:04 +0200</lastBuildDate>
     
-	<atom:link href="https://www.sblcook.dev/tags/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://www.samcook.dev/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>tag1</title>
-      <link>https://www.sblcook.dev/tags/tag1/</link>
+      <link>https://www.samcook.dev/tags/tag1/</link>
       <pubDate>Sun, 12 May 2019 20:30:04 +0200</pubDate>
       
-      <guid>https://www.sblcook.dev/tags/tag1/</guid>
+      <guid>https://www.samcook.dev/tags/tag1/</guid>
       <description></description>
     </item>
     
     <item>
       <title>tag2</title>
-      <link>https://www.sblcook.dev/tags/tag2/</link>
+      <link>https://www.samcook.dev/tags/tag2/</link>
       <pubDate>Sun, 12 May 2019 20:30:04 +0200</pubDate>
       
-      <guid>https://www.sblcook.dev/tags/tag2/</guid>
+      <guid>https://www.samcook.dev/tags/tag2/</guid>
       <description></description>
     </item>
     
