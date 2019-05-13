@@ -6,10 +6,28 @@
     <description>Recent content on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 12 May 2019 20:30:04 +0200</lastBuildDate>
+    <lastBuildDate>Sun, 12 May 2019 20:52:52 +0200</lastBuildDate>
     
 	<atom:link href="https://www.samcook.dev/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Contact</title>
+      <link>https://www.samcook.dev/contact/</link>
+      <pubDate>Sun, 12 May 2019 20:52:52 +0200</pubDate>
+      
+      <guid>https://www.samcook.dev/contact/</guid>
+      <description>Contact me via email&amp;hellip;</description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>https://www.samcook.dev/about/</link>
+      <pubDate>Sun, 12 May 2019 20:31:53 +0200</pubDate>
+      
+      <guid>https://www.samcook.dev/about/</guid>
+      <description>Hi, I&amp;rsquo;m Sam.</description>
+    </item>
     
     <item>
       <title>Test Post</title>
