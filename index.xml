@@ -6,10 +6,19 @@
     <description>Recent content on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Mon, 27 May 2019 20:33:49 +0200</lastBuildDate>
+    <lastBuildDate>Mon, 27 May 2019 21:03:45 +0200</lastBuildDate>
     
 	<atom:link href="https://www.samcook.dev/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Introduction</title>
+      <link>https://www.samcook.dev/blog/introduction/</link>
+      <pubDate>Mon, 27 May 2019 21:03:45 +0200</pubDate>
+      
+      <guid>https://www.samcook.dev/blog/introduction/</guid>
+      <description>More coming soon!</description>
+    </item>
     
     <item>
       <title>About</title>
@@ -17,8 +26,8 @@
       <pubDate>Mon, 27 May 2019 20:33:49 +0200</pubDate>
       
       <guid>https://www.samcook.dev/about/</guid>
-      <description>Hi, I&amp;rsquo;m Sam. I&amp;rsquo;m a software developer and technology enthusiast currently living in Heidelberg, Germany.
-In 2018 I graduated from the Honors Program at Temple University where I studied math and computer science.
+      <description>Hi, I&amp;rsquo;m Sam. I&amp;rsquo;m a software developer and data enthusiast currently living in Heidelberg, Germany.
+In 2018 I graduated from the Honors Program at Temple University where I studied math and computer science. They even let me speak at graduation!
 I&amp;rsquo;m interested in many topics around big data, including distributed systems, data streaming, cloud native computing, machine learning, computer vision, and data science.
 In my free time, aside from programming, my interests include biking, analogue photography, rock climbing, travelling, reading, listening to podcasts, and perfecting my coffee recipe.</description>
     </item>
