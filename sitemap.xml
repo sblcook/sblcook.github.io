@@ -4,7 +4,17 @@
   
   <url>
     <loc>https://www.samcook.dev/blog/</loc>
-    <lastmod>2019-05-27T21:03:45+02:00</lastmod>
+    <lastmod>2020-06-17T18:26:29-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.samcook.dev/blog/google/</loc>
+    <lastmod>2020-06-17T18:26:29-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.samcook.dev/</loc>
+    <lastmod>2020-06-17T18:26:29-04:00</lastmod>
   </url>
   
   <url>
@@ -14,11 +24,6 @@
   
   <url>
     <loc>https://www.samcook.dev/blog/introduction/</loc>
-    <lastmod>2019-05-27T21:03:45+02:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://www.samcook.dev/</loc>
     <lastmod>2019-05-27T21:03:45+02:00</lastmod>
   </url>
   

@@ -6,10 +6,20 @@
     <description>Recent content on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Mon, 27 May 2019 21:03:45 +0200</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jun 2020 18:26:29 -0400</lastBuildDate>
     
 	<atom:link href="https://www.samcook.dev/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>How to use fewer Google Services (and why you might want to).</title>
+      <link>https://www.samcook.dev/blog/google/</link>
+      <pubDate>Wed, 17 Jun 2020 18:26:29 -0400</pubDate>
+      
+      <guid>https://www.samcook.dev/blog/google/</guid>
+      <description>Google is big, so what? Google and the services/products that they offer have become nearly ubiquitous pieces of modern life. Between emails and video calls, navigation, Android phones, internet searching, and watching videos, one can spend nearly their entire time online using a Google service on Google hardware.
+As someone who used to use all of these services, the accuracy of recommmendations can be startling&amp;ndash;from suggested music, videos, and searches to potential restaurants, email compositions, and more.</description>
+    </item>
     
     <item>
       <title>Introduction</title>
