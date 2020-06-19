@@ -1,11 +1,15 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
     <loc>https://www.samcook.dev/blog/</loc>
     <lastmod>2019-05-27T21:03:45+02:00</lastmod>
-    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.samcook.dev/tags/intro/</loc>
+    <lastmod>2019-05-27T21:03:45+02:00</lastmod>
   </url>
   
   <url>
@@ -16,19 +20,11 @@
   <url>
     <loc>https://www.samcook.dev/</loc>
     <lastmod>2019-05-27T21:03:45+02:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
     <loc>https://www.samcook.dev/tags/</loc>
     <lastmod>2019-05-27T21:03:45+02:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://www.samcook.dev/tags/intro/</loc>
-    <lastmod>2019-05-27T21:03:45+02:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -39,7 +35,6 @@
   <url>
     <loc>https://www.samcook.dev/tags/about/</loc>
     <lastmod>2019-05-27T20:33:49+02:00</lastmod>
-    <priority>0</priority>
   </url>
   
 </urlset>
