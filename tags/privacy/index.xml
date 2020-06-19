@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Blogs on Sam Cook</title>
-    <link>https://www.samcook.dev/blog/</link>
-    <description>Recent content in Blogs on Sam Cook</description>
+    <title>privacy on Sam Cook</title>
+    <link>https://www.samcook.dev/tags/privacy/</link>
+    <description>Recent content in privacy on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
     <lastBuildDate>Wed, 17 Jun 2020 18:26:29 -0400</lastBuildDate>
     
-	<atom:link href="https://www.samcook.dev/blog/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://www.samcook.dev/tags/privacy/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
