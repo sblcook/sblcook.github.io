@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="description" content="Sam Cook&#39;s Blog">
+
+
+<base href="https://www.samcook.dev">
+
+<title>Sam Cook</title>
+
+<meta name="generator" content="Hugo 0.74.2" />
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://www.samcook.dev/css/main.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="https://www.samcook.dev/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="https://www.samcook.dev/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="https://www.samcook.dev/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="https://www.samcook.dev/manifest.json">
+<link rel="mask-icon" href="https://www.samcook.dev/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="en-US">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">Playing around with Sibilant</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON JULY 4, 2020 
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    <p>I was recently playing around with <a href="https://sibilant.org/">Sibilant</a>, a language that is stylistically similar to Lisp and compiles to JavaScript, and figured that I would give a brief overview of some of the interesting concepts. There are a <a href="%5Bhttps://github.com/jashkenas/coffeescript/wiki/List-of-languages-that-compile-to-JS%5D">whole bunch</a> of languages that compile to JS, and even some others that are also stylistically similar to Lisp like <a href="https://github.com/clojure/clojurescript">ClojureScript</a>.</p>
+<h3 id="getting-started">Getting started</h3>
+<p>Let&rsquo;s see some example Sibilant code and see how it compiles to get a better understanding of how it works. You can also follow along by installing Sibilant and starting a REPL in your console. If you have Node.js installed, you can just install using <code>npm</code>. You can check by running</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">node -v <span style="color:#f92672">&amp;&amp;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>npm -v
+</code></pre></div><p>in the console. If both versions are not printed, then you will have to install. Alternatively, follow the instructions below to install and if you run into an error start backtracking. The official recommendation is to use a version manager for Node.js, and I would personally look into <a href="https://github.com/nvm-sh/nvm">nvm</a>.
+So, assuming that you have <code>npm</code> installed, you can install sibilant with</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">npm install -g sibilant
+</code></pre></div><p>(The <code>-g</code> will update if you already have it installed)
+Since you may need to run as root, I would recommend double checking the official documentation before you run anything with <code>sudo</code>. Who trusts running commands as root from random people?<br>
+Once you have successfully installed it, you can start the REPL with a simple</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant
+</code></pre></div><h3 id="some-examples">Some Examples</h3>
+<p>In the following examples, we are running code int the REPL. The result that the REPL returns below our command is the compiled JS for reference.</p>
+<h4 id="hello-world">Hello World</h4>
+<p>If we want to print &ldquo;Hello World!&rdquo;, we can run</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>console.log <span style="color:#e6db74">&#34;Hello World!&#34;</span><span style="color:#f92672">)</span>
+result: console.log<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Hello World!&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><h4 id="variables">Variables</h4>
+<p>Just as in JS, we can create variables to store data. It will look something like this</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>var i 10<span style="color:#f92672">)</span>
+var i <span style="color:#f92672">=</span> 10;
+</code></pre></div><p>It&rsquo;s also possible to use strings</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>var myString <span style="color:#e6db74">&#34;This is my string&#34;</span><span style="color:#f92672">)</span>
+var myString <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">&#39;</span>This is my string<span style="color:#e6db74">&#34;;
+</span></code></pre></div><p>or undefined variables</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>var x<span style="color:#f92672">)</span>
+var x <span style="color:#f92672">=</span> undefined;
+</code></pre></div><p>If we have a lot to create at once, that is also okay</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>var a 1, b 2, c 3<span style="color:#f92672">)</span>
+var a <span style="color:#f92672">=</span> 1,
+    b <span style="color:#f92672">=</span> 2,
+    c <span style="color:#f92672">=</span> 3;
+</code></pre></div><p>If we need to modify a variable, we can use the <code>assign</code> macro.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>assign a 2000<span style="color:#f92672">)</span>
+a <span style="color:#f92672">=</span> 2000;
+result: <span style="color:#ae81ff">2000</span>
+</code></pre></div><h4 id="data-structures">Data Structures</h4>
+<p>Arrays and objects are supported. Instantiating an array is done like this</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4</span> 5<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>1, 2, 3, 4, 5<span style="color:#f92672">]</span>
+result: <span style="color:#f92672">[</span>1, 2, 3, 4, 5<span style="color:#f92672">]</span>
+</code></pre></div><p>It can also easily be set as a variable</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>var a <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4</span> 5<span style="color:#f92672">])</span>
+var a <span style="color:#f92672">=</span> <span style="color:#f92672">[</span>1, 2, 3, 4, 5<span style="color:#f92672">]</span>;
+</code></pre></div><p>Similarly with objects,</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>var o <span style="color:#f92672">{</span>key1 101, key2 <span style="color:#e6db74">&#34;my string&#34;</span>, key3 <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> 3<span style="color:#f92672">]})</span>
+var o <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>
+  key1: 101,
+  key2: <span style="color:#e6db74">&#34;my string&#34;</span>,
+  key3: <span style="color:#f92672">[</span> 1, 2, <span style="color:#ae81ff">3</span> <span style="color:#f92672">]</span>
+<span style="color:#f92672">}</span>;
+</code></pre></div><p>To modify the structures, use <code>set</code> or <code>get</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>set o<span style="color:#f92672">[</span><span style="color:#e6db74">&#34;key2&#34;</span><span style="color:#f92672">]</span> <span style="color:#e6db74">&#34;a new value&#34;</span><span style="color:#f92672">)</span>
+result: <span style="color:#e6db74">&#39;a new value&#39;</span>
+sibilant&gt; <span style="color:#f92672">(</span>get a<span style="color:#f92672">[</span>1<span style="color:#f92672">])</span>
+result: <span style="color:#ae81ff">2</span>
+</code></pre></div><h4 id="functions">Functions</h4>
+<p>functions can be defined as follows</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>def printName <span style="color:#f92672">(</span>myName<span style="color:#f92672">)</span>
+            <span style="color:#f92672">(</span>var intro <span style="color:#f92672">(</span>+ <span style="color:#e6db74">&#34;Hello, my name is &#34;</span> myName <span style="color:#f92672">))</span>
+            <span style="color:#f92672">(</span>console.log intro<span style="color:#f92672">)</span>
+            intro<span style="color:#f92672">)</span>
+var printName <span style="color:#f92672">=</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">function</span> printName<span style="color:#66d9ef">$(</span>myName<span style="color:#66d9ef">)</span> <span style="color:#f92672">{</span>
+  /* printName eval.sibilant:1:0 */
+
+  var intro <span style="color:#f92672">=</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Hello, my name is &#34;</span> + myName<span style="color:#f92672">)</span>;
+  console.log<span style="color:#f92672">(</span>intro<span style="color:#f92672">)</span>;
+  <span style="color:#66d9ef">return</span> intro;
+<span style="color:#f92672">})</span>;
+</code></pre></div><p>If no parameters are passed to the function, the parenthesis can be left empty.</p>
+<h4 id="flow-control">Flow Control</h4>
+<p>When you have conditionals, the macros <code>if</code>, <code>when</code>, and will come in handy.
+For a single condition, we can use <code>when</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>when <span style="color:#f92672">(=</span> clock.minutes zero<span style="color:#f92672">)</span>
+            clock.chime<span style="color:#f92672">(</span>clock.hour<span style="color:#f92672">))</span>
+<span style="color:#f92672">(</span><span style="color:#66d9ef">function</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+  <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>clock.minutes <span style="color:#f92672">===</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">return</span> clock.chime<span style="color:#f92672">(</span>clock.hour<span style="color:#f92672">)</span>;
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">})</span>.call<span style="color:#f92672">(</span>this<span style="color:#f92672">)</span>
+result: <span style="color:#e6db74">&#34;Chirp chirp chirp&#34;</span>
+</code></pre></div><p>If we have different conditions to consider where, we can use <code>if</code> to create an &ldquo;if/else if/else&rdquo; pattern.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span><span style="color:#66d9ef">if</span> coffeepot.full<span style="color:#f92672">)</span> 
+            <span style="color:#f92672">(</span>drink size.large<span style="color:#f92672">)</span>
+          <span style="color:#f92672">(</span>coffeepot.half<span style="color:#f92672">)</span> <span style="color:#75715e"># else if</span>
+            <span style="color:#f92672">(</span>drink size.small<span style="color:#f92672">)</span>
+          <span style="color:#f92672">(</span>coffeepot.quarter<span style="color:#f92672">)</span> <span style="color:#75715e">#else if</span>
+            <span style="color:#f92672">(</span><span style="color:#66d9ef">do</span> 
+              <span style="color:#f92672">(</span>drink size.small<span style="color:#f92672">)</span>
+              <span style="color:#f92672">(</span>make coffee<span style="color:#f92672">))</span>
+          <span style="color:#f92672">(</span>coffeepot.refill<span style="color:#f92672">)</span> <span style="color:#75715e">#else</span>
+</code></pre></div><p>Note the usage of the <code>do</code> macro above when multiple statements are required.</p>
+<h4 id="iteration">Iteration</h4>
+<p>We can iterate through arrays and other iterables</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">sibilant&gt; <span style="color:#f92672">(</span>each <span style="color:#f92672">(</span>value<span style="color:#f92672">)</span> <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4</span> 5<span style="color:#f92672">]</span>
+            <span style="color:#f92672">(</span>console.log value<span style="color:#f92672">))</span>
+<span style="color:#f92672">[</span> 1, 2, 3, 4, <span style="color:#ae81ff">5</span> <span style="color:#f92672">]</span>.forEach<span style="color:#f92672">((</span><span style="color:#66d9ef">function</span><span style="color:#f92672">(</span>value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+  /* eval.sibilant:1:0 */
+
+  <span style="color:#66d9ef">return</span> console.log<span style="color:#f92672">(</span>value<span style="color:#f92672">)</span>;
+<span style="color:#f92672">}))</span>
+<span style="color:#ae81ff">1</span>
+<span style="color:#ae81ff">2</span>
+<span style="color:#ae81ff">3</span>
+<span style="color:#ae81ff">4</span>
+<span style="color:#ae81ff">5</span>
+</code></pre></div><h4 id="prefix-notation">Prefix Notation</h4>
+<p>Since this is Lisp-like, all functions are done using prefix notation, where the operator (+, -, =, etc) come before the operands.</p>
+<h3 id="a-final-challenge">A Final Challenge</h3>
+<p>To put it all together, we could set up a tiny exercise.</p>
+<p>Let&rsquo;s say that the goal of the exercise is to take an array of strings and print a list of each distinct phrase and the number of occurrences in decreasing frequency.
+I will link to my answer so that you can think of how to do it or implement it without spoilers.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(def <span style="color:#a6e22e">sort</span> (input_strings)
+  <span style="color:#75715e">;; Code goes here</span>
+  )
+<span style="color:#75715e">;; Here we can test some edge cases</span>
+(<span style="color:#a6e22e">sort</span> [<span style="color:#e6db74">&#34;single string test&#34;</span>])
+(<span style="color:#a6e22e">sort</span> [])
+(<span style="color:#a6e22e">sort</span> [1 <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">3</span> 4])
+(<span style="color:#a6e22e">sort</span> [<span style="color:#e6db74">&#34;a&#34;</span> <span style="color:#e6db74">&#34;a&#34;</span> <span style="color:#e6db74">&#34;c&#34;</span> <span style="color:#e6db74">&#34;b&#34;</span> <span style="color:#e6db74">&#34;c&#34;</span> <span style="color:#e6db74">&#34;b&#34;</span> <span style="color:#e6db74">&#34;e&#34;</span> <span style="color:#e6db74">&#34;a&#34;</span> <span style="color:#e6db74">&#34;z&#34;</span> <span style="color:#e6db74">&#34;e&#34;</span> <span style="color:#e6db74">&#34;e&#34;</span> <span style="color:#e6db74">&#34;e&#34;</span> <span style="color:#e6db74">&#34;e&#34;</span> <span style="color:#e6db74">&#34;e&#34;</span>])
+</code></pre></div><p>You can find the link to a solution that I implemented <a href="https://gist.github.com/sblcook/1b13789dd28ddce24eb339790e59ed1a">here</a> and you can find more documentation at the <a href="https://docs.sibilant.org/">official website</a>.</p>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+      
+      
+      
+      TAGS:
+      
+      
+      <a class="meta" href="https://www.samcook.dev/tags/technology">TECHNOLOGY</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://www.samcook.dev/blog/what-you-do/what-you-do/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="https://www.samcook.dev/blog">blog</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://www.samcook.dev">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2020. Sam Cook. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  
+</footer>
+
+</div>
+
+
+
+
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
+
+

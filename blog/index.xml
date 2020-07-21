@@ -6,10 +6,20 @@
     <description>Recent content in Blogs on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sat, 04 Jul 2020 13:00:32 -0400</lastBuildDate>
+    <lastBuildDate>Sat, 04 Jul 2020 13:00:47 -0400</lastBuildDate>
     
 	<atom:link href="https://www.samcook.dev/blog/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Playing around with Sibilant</title>
+      <link>https://www.samcook.dev/blog/sibilant/</link>
+      <pubDate>Sat, 04 Jul 2020 13:00:47 -0400</pubDate>
+      
+      <guid>https://www.samcook.dev/blog/sibilant/</guid>
+      <description>I was recently playing around with Sibilant, a language that is stylistically similar to Lisp and compiles to JavaScript, and figured that I would give a brief overview of some of the interesting concepts. There are a whole bunch of languages that compile to JS, and even some others that are also stylistically similar to Lisp like ClojureScript.
+Getting started Let&amp;rsquo;s see some example Sibilant code and see how it compiles to get a better understanding of how it works.</description>
+    </item>
     
     <item>
       <title>Review: What You Do Is Who You Are</title>
