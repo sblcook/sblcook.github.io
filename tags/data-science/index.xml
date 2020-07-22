@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>technology on Sam Cook</title>
-    <link>https://www.samcook.dev/tags/technology/</link>
-    <description>Recent content in technology on Sam Cook</description>
+    <title>data science on Sam Cook</title>
+    <link>https://www.samcook.dev/tags/data-science/</link>
+    <description>Recent content in data science on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
     <lastBuildDate>Wed, 22 Jul 2020 15:27:05 -0400</lastBuildDate>
     
-	<atom:link href="https://www.samcook.dev/tags/technology/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://www.samcook.dev/tags/data-science/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -20,16 +20,6 @@
       <description>Photo by Bermix Studio on Unsplash 
   This is a project I worked on to investigate some different methods for detecting credit card fraud&amp;ndash;a classic unbalanced data problem. Feel free to skip around to different sections or straight to the results. I&amp;rsquo;ll also include the code so that you can run it and/or follow along.
 Core Ideas Imbalanced datasets are common when trying to solve many problems – spam email classification, customer churn, insurance fraud detection, or in our case, credit card fraud detection.</description>
-    </item>
-    
-    <item>
-      <title>Playing around with Sibilant</title>
-      <link>https://www.samcook.dev/blog/sibilant/</link>
-      <pubDate>Sat, 04 Jul 2020 13:00:47 -0400</pubDate>
-      
-      <guid>https://www.samcook.dev/blog/sibilant/</guid>
-      <description>I was recently playing around with Sibilant, a language that is stylistically similar to Lisp and compiles to JavaScript, and figured that I would give a brief overview of some of the interesting concepts. There are a whole bunch of languages that compile to JS, and even some others that are also stylistically similar to Lisp like ClojureScript.
-Getting started Let&amp;rsquo;s see some example Sibilant code and see how it compiles to get a better understanding of how it works.</description>
     </item>
     
   </channel>

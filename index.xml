@@ -6,10 +6,21 @@
     <description>Recent content on Sam Cook</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sat, 04 Jul 2020 13:00:47 -0400</lastBuildDate>
+    <lastBuildDate>Wed, 22 Jul 2020 15:27:05 -0400</lastBuildDate>
     
 	<atom:link href="https://www.samcook.dev/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Detecting Credit Card Fraud</title>
+      <link>https://www.samcook.dev/blog/ccfraud/</link>
+      <pubDate>Wed, 22 Jul 2020 15:27:05 -0400</pubDate>
+      
+      <guid>https://www.samcook.dev/blog/ccfraud/</guid>
+      <description>Photo by Bermix Studio on Unsplash 
+  This is a project I worked on to investigate some different methods for detecting credit card fraud&amp;ndash;a classic unbalanced data problem. Feel free to skip around to different sections or straight to the results. I&amp;rsquo;ll also include the code so that you can run it and/or follow along.
+Core Ideas Imbalanced datasets are common when trying to solve many problems – spam email classification, customer churn, insurance fraud detection, or in our case, credit card fraud detection.</description>
+    </item>
     
     <item>
       <title>Playing around with Sibilant</title>

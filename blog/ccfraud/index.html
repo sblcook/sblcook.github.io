@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta name="description" content="Sam Cook&#39;s Blog">
+
+
+<base href="https://www.samcook.dev">
+
+<title>Sam Cook</title>
+
+<meta name="generator" content="Hugo 0.74.2" />
+
+
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:300,400|Roboto+Slab:400,700|Roboto:300,300i,400,400i,500,500i,700,700i">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css">
+<link rel="stylesheet" href="https://www.samcook.dev/css/main.css">
+
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="https://www.samcook.dev/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="https://www.samcook.dev/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="https://www.samcook.dev/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="https://www.samcook.dev/manifest.json">
+<link rel="mask-icon" href="https://www.samcook.dev/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="theme-color" content="#ffffff">
+
+</head>
+<body lang="en-US">
+<div class="container">
+
+
+<header class="row text-left title">
+  <h1 class="title">Detecting Credit Card Fraud</h1>
+</header>
+<section id="category-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+        PUBLISHED ON JULY 22, 2020 
+      
+    </h6>
+  </div>
+  
+</section>
+<section id="content-pane" class="row">
+  <div class="col-md-12 text-justify content">
+    <figure>
+    <img src="blog/ccfraud/fraudster.jpg"
+         alt="Photo by Bermix Studio on Unsplash" width="90%" height="100%"/> <figcaption>
+            <p>Photo by Bermix Studio on Unsplash
+                    <a href="https://unsplash.com/photos/F7DAQIDSk98"></a></p>
+        </figcaption>
+</figure>
+
+<p>This is a project I worked on to investigate some different methods for detecting credit card fraud&ndash;a classic unbalanced data problem. Feel free to skip around to different sections or straight to the results. I&rsquo;ll also include the code so that you can run it and/or follow along.</p>
+<h1 id="core-ideas">Core Ideas</h1>
+<p>Imbalanced datasets are common when trying to solve many problems – spam email classification, customer churn, insurance fraud detection, or in our case, credit card fraud detection. In all of these cases, the minority class is much smaller than the majority class, ranging in size from 25% to 0.25%. If we can correctly classify the minority class without misclassifying the majority class, this is a huge success for a company, as identification of the minority class will often lead to huge savings. The goal of this project was to find the most effective classification method for a severely imbalanced dataset of credit card transactions. I explored four different techniques to achieve this – sampling, anomaly detection, cost-sensitive training, and ensemble methods. It was discovered that the baseline performance on the dataset was already pretty good, but could be boosted further with cost-sensitive methods or anomaly detection methods for maximum performance.</p>
+<h1 id="introduction">Introduction</h1>
+<p>Imbalanced data sets are prevalent in many real-world supervised learning problems. They can be incredibly insightful, and incredibly difficult to work with. There is often a minority class that exhibits very different behavior from the majority class that we are acutely interested in. Many classification models assume that there is an even distribution of classes, assume the misclassification error is equal, are accuracy driven, and often result in a bias toward the majority class. Thus, many problems are encountered when trying to apply normal classification techniques to imbalanced data. From email spam detection to  ax evasion, models must be built using data that is skewed toward a majority class. This skew can be as small as 75%/25%, or as large as 99.99%/0.01%. If a model just predicted the majority class every time, the accuracy could be 99%, normally a great score. However, the minority class is completely misclassified. Thus, alternative metrics are employed–for this application, the Receiver Operating Characteristic curve is used.</p>
+<p>In this project, the goal is to determine which method for imbalanced data is best at correctly predicting credit card fraud. Credit card fraud is extremely expensive to credit card companies, as they are responsible for the fraudulent transactions. If a fraudster spends $10,000 on someone else’s credit card, the company must pay for it. This cost is ultimately passed on to the customer through higher interest rates, lower rewards, and stricter standards. If the fraudulent charges can be detected early, the card could be shut down or the fraudster could be apprehended before they disappear. However, there are some problems associated with credit cards. If the company declines too many transactions in an attempt to stem fraud, the customer will no longer use their card because it is always declined, and they  will lose money. If, on the other hand, the company allows too many questionable transactions, they risk allowing fraudulent transactions, which also leads to losing money.</p>
+<p>The dataset (Dal Pozzolo et al. (2015)) is from Kaggle, and was collected and analyzed during a collaboration between the Machine Learning Group of the Université libre de Bruxelles and Worldline. The data contains 284,807 records of credit card transactions, of which 492 (0.172%) are fraudulent. The transactions take place over two days in September, 2013 in Europe. The first 28 features of the data are numerical values obtained from Principal Component Analysis on the original dataset to anonymize it. In addition to these principal components, there is also the transaction amount, and the time of the transaction, where the first transaction is time 0 and every following transaction is the time in seconds since the first transaction. The data is labelled depending on whether or not it is fraudulent. The huge disparity of class distribution is visible in Figure 1.</p>
+<figure>
+    <img src="blog/ccfraud/comparison.png"
+         alt="Figure 1: Distribution of the two classes. The fraudulent transactions aren&amp;rsquo;t even visible they are such a small amount!"/> <figcaption>
+            <p><em>Figure 1: Distribution of the two classes. The fraudulent transactions aren&rsquo;t even visible they are such a small amount!</em></p>
+        </figcaption>
+</figure>
+
+<p>There are many techniques for imbalanced data classification. This project explores the most common techniques, although there are still other techniques that are not used as frequently and fill a niche. Of all the imbalanced data techniques, the largest is sampling, where the dataset is re-sampled to achieve a balanced set, where 50% is one class and 50% is the other class. Several different sampling techniques are explored in this paper. The next technique used is anomaly detection. In this method, it is assumed that the data is only one class, and the minority class are outliers. Cost-sensitive training is also employed, where misclassifications are heavily penalized. Lastly, we use various ensemble classification techniques to build robust classifiers. Before beginning the project, it is clear that there is some sort of relation on the data when we graph the first two principal components, V1 and V2, against each other. In Figure 2, it is clear that there are sections where there is overlap, as well as sections where the data is only fraudulent or only valid.</p>
+<figure>
+    <img src="blog/ccfraud/two%20components.png"/> 
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/tc%20valid.png"/> 
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/tc%20fraud.png"
+         alt="Figure 2: First two principal components, graphed, with fraudulent transactions in green and valid transactions in blue"/> <figcaption>
+            <p><em>Figure 2: First two principal components, graphed, with fraudulent transactions in green and valid transactions in blue</em></p>
+        </figcaption>
+</figure>
+
+<h1 id="related-work">Related Work</h1>
+<p>There is a lot of past a present research on imbalanced data. Much of the cutting edge current research focuses on novel algorithms for classification or sampling. Barua et al. (2014) propose a new synthetic oversampling method where the minority class is weighted depending on how far it is from a majority class sample, and creates synthetic weights from that. Sun et al. (2015) propose a new ensemble technique where multiple balanced datasets are sampled, and from these balanced data sets, various ensemble methods are employed. Maldonado et al. (2014) explores the combination of high dimensionality and imbalanced classes through a novel method of feature selection.</p>
+<p>There has also been significant research in detecting credit card fraud. A multi-classifier metalearning technique was employed by Chan and Stolfo (1998) for credit card fraud detection. In Chan et al. (1999), the authors similarly use multiple classifiers, but use distributed computing to decrease the time and make the solution more scalable. The papers by Brause et al. (1999), Ghosh and Reilly (1994), and Aleskerov et al. (1997) propose using neural networks to classify fraudulent credit card transactions, although they are 20 to 25 years old. Finally, Mahmoudi and Duman (2015) look into using a modified Fisher Discriminant Analysis for credit card fraud.</p>
+<p>The authors of the dataset have written a paper (Dal Pozzolo et al. (2014)) about their analysis of the data set. Some of the things they explore in this paper are having a model trained on a steam of data so as to not keep terabytes of learning data, appropriate scoring metrics, and updating the model as new data comes in to avoid changing fraud patterns going undetected. I received a thorough background on mining from many survey papers or textbook chapters that covered a wide variety of methods for mining imbalanced data, including, Aggarwal (2015), He and Garcia (2009), Chawla (2009), Provost (2000), Jeni et al. (2013).</p>
+<h1 id="methodology">Methodology</h1>
+<p>In this project, four different techniques were used. The data was split into 60% training, 20% validation, and 20% testing. When tuning the model hyperparameters, I used 5-fold cross-validation and looked at the mean score returned. Baseline measurements were taken without any modifications, so that I could determine whether my results were meaningful. Baseline measurements were taken on four different classifiers– Decision Trees, Logistic Regression, Linear SVM, and Naive Bayes. All of the models were programmed using Scikit-learn, a machine learning library for Python, and the data was resampled using Imbalanced-learn, a sampling library for Python. As mentioned earlier, pure accuracy will not give a valid metric of our classifier. In this case, the classifier always predicted valid, the accuracy would be 99.828%. Several different metrics could be used, including Cohen’s kappa, F1 score, Krippendorf’s alpha, and area under the receiver operating characteristic curve (ROC) or precision-recall curve. In this project, the area under the ROC was used as the primary performance metric. In addition to the ROC curve, confusion matrices were also used to verify the results. An example confusion matrix can be seen in Figure 3.</p>
+<p>To setup, we need to download the packages and load our data into a Data Frame.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#import packages</span>
+<span style="color:#f92672">import</span> numpy <span style="color:#f92672">as</span> np
+<span style="color:#f92672">import</span> pandas <span style="color:#f92672">as</span> pd
+<span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#f92672">as</span> plt
+<span style="color:#f92672">import</span> sklearn
+<span style="color:#f92672">import</span> itertools
+<span style="color:#f92672">from</span> sklearn.model_selection <span style="color:#f92672">import</span> train_test_split
+<span style="color:#f92672">from</span> sklearn.metrics <span style="color:#f92672">import</span> roc_auc_score <span style="color:#66d9ef">as</span> roc
+<span style="color:#f92672">from</span> sklearn.metrics <span style="color:#f92672">import</span> roc_curve, auc, confusion_matrix, recall_score, precision_score
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> ensemble
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> neighbors
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> linear_model
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> svm
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> naive_bayes
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> metrics
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> model_selection
+<span style="color:#f92672">from</span> sklearn <span style="color:#f92672">import</span> covariance
+<span style="color:#f92672">import</span> imblearn
+<span style="color:#f92672">from</span> imblearn <span style="color:#f92672">import</span> over_sampling
+<span style="color:#f92672">from</span> imblearn <span style="color:#f92672">import</span> under_sampling
+<span style="color:#f92672">from</span> imblearn <span style="color:#f92672">import</span> ensemble
+<span style="color:#f92672">from</span> imblearn <span style="color:#f92672">import</span> combine
+
+<span style="color:#f92672">%</span>matplotlib inline
+
+<span style="color:#75715e">#import data</span>
+df <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_csv(<span style="color:#e6db74">&#39;creditcard.csv&#39;</span>)
+
+<span style="color:#75715e">#drop time column</span>
+df<span style="color:#f92672">=</span>df<span style="color:#f92672">.</span>drop([<span style="color:#e6db74">&#39;Time&#39;</span>], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+<span style="color:#75715e">#normalize amount</span>
+df[<span style="color:#e6db74">&#39;Amount&#39;</span>] <span style="color:#f92672">=</span> (df[<span style="color:#e6db74">&#39;Amount&#39;</span>] <span style="color:#f92672">-</span> df[<span style="color:#e6db74">&#39;Amount&#39;</span>]<span style="color:#f92672">.</span>mean()) <span style="color:#f92672">/</span> (df[<span style="color:#e6db74">&#39;Amount&#39;</span>]<span style="color:#f92672">.</span>max() <span style="color:#f92672">-</span> df[<span style="color:#e6db74">&#39;Amount&#39;</span>]<span style="color:#f92672">.</span>min())
+
+<span style="color:#75715e">#split into train/test data</span>
+X_train, X_test, y_train, y_test <span style="color:#f92672">=</span> train_test_split(df<span style="color:#f92672">.</span>iloc[:,:<span style="color:#ae81ff">29</span>], df<span style="color:#f92672">.</span>iloc[:,<span style="color:#ae81ff">29</span>], test_size<span style="color:#f92672">=</span><span style="color:#ae81ff">0.20</span>, random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+</code></pre></div><p>Now that the data is loaded, we can do some preliminary investigations. If you run</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">df<span style="color:#f92672">.</span>head()
+</code></pre></div><p>to see the first 10 rows, you will see that there are 29 features that are titled V1&ndash;V28 and &ldquo;Amount&rdquo;, as well as a label (Class). Above, you&rsquo;ll see that we normalized the &ldquo;Amount&rdquo; column to try to reduce the effect of outliers, as well as dropping the Time column. The data set has had preliminary PCA performed on it, so V1-V28 are principal components 1 to 28.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># Set receiver operating characteristic as our scorer</span>
+roc_scorer <span style="color:#f92672">=</span> metrics<span style="color:#f92672">.</span>make_scorer(score_func <span style="color:#f92672">=</span> metrics<span style="color:#f92672">.</span>roc_auc_score)
+
+<span style="color:#75715e">#Create Validation set on 25% of training data (so it is 20% of all data) to not overfit</span>
+val_indices <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>choice(y_train<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>], y_train<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">/</span><span style="color:#ae81ff">4</span>, replace <span style="color:#f92672">=</span> False)
+train_indices <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>where(<span style="color:#f92672">~</span>np<span style="color:#f92672">.</span>in1d(range(y_train<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]), val_indices))[<span style="color:#ae81ff">0</span>]
+
+X_val <span style="color:#f92672">=</span> X_train<span style="color:#f92672">.</span>iloc[val_indices,:] <span style="color:#75715e">#first quarter</span>
+X_train2 <span style="color:#f92672">=</span> X_train<span style="color:#f92672">.</span>iloc[train_indices,:] <span style="color:#75715e">#next three quarters</span>
+y_val <span style="color:#f92672">=</span> y_train<span style="color:#f92672">.</span>iloc[val_indices]
+y_train2 <span style="color:#f92672">=</span> y_train<span style="color:#f92672">.</span>iloc[train_indices]
+</code></pre></div><p>Now, we can start making some of the graphs that were shown above!</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#The three plots created comprise Figure 2</span>
+<span style="color:#75715e">#First two principal components overlaid</span>
+plt<span style="color:#f92672">.</span>scatter(df[df[<span style="color:#e6db74">&#39;Class&#39;</span>] <span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>V1,df[df[<span style="color:#e6db74">&#39;Class&#39;</span>]<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>V2, c<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;darkgreen&#39;</span>, zorder <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>)
+plt<span style="color:#f92672">.</span>scatter(df[df[<span style="color:#e6db74">&#39;Class&#39;</span>] <span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>V1,df[df[<span style="color:#e6db74">&#39;Class&#39;</span>]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>V2, c<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;darkblue&#39;</span>, zorder <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>)
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;First two Principal Components&#39;</span>)
+plt<span style="color:#f92672">.</span>xlabel(<span style="color:#e6db74">&#39;V1&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;V2&#39;</span>)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;pca_first_two&#39;</span>)
+
+<span style="color:#75715e">#Fraudulent transactions, V1 vs V2</span>
+plt<span style="color:#f92672">.</span>scatter(df[df[<span style="color:#e6db74">&#39;Class&#39;</span>] <span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>V1,df[df[<span style="color:#e6db74">&#39;Class&#39;</span>]<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>V2, c<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;darkgreen&#39;</span>)
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;First two Principal Components--Fraudulent&#39;</span>)
+plt<span style="color:#f92672">.</span>xlabel(<span style="color:#e6db74">&#39;V1&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;V2&#39;</span>)
+plt<span style="color:#f92672">.</span>axis([<span style="color:#f92672">-</span><span style="color:#ae81ff">50</span>,<span style="color:#ae81ff">5</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">60</span>,<span style="color:#ae81ff">25</span>])
+ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>gca()
+ax<span style="color:#f92672">.</span>set_autoscale_on(False)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;pca_first_two_fraud&#39;</span>)
+
+<span style="color:#75715e">#Valid transactions, V1 vs V2</span>
+plt<span style="color:#f92672">.</span>scatter(df[df[<span style="color:#e6db74">&#39;Class&#39;</span>] <span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>V1,df[df[<span style="color:#e6db74">&#39;Class&#39;</span>]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>V2, c<span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;darkblue&#39;</span>)
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;First two Principal Components--Valid&#39;</span>)
+plt<span style="color:#f92672">.</span>xlabel(<span style="color:#e6db74">&#39;V1&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;V2&#39;</span>)
+plt<span style="color:#f92672">.</span>axis([<span style="color:#f92672">-</span><span style="color:#ae81ff">50</span>,<span style="color:#ae81ff">5</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">60</span>,<span style="color:#ae81ff">25</span>])
+ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>gca()
+ax<span style="color:#f92672">.</span>set_autoscale_on(False)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;pca_first_two_valid&#39;</span>)
+</code></pre></div><p>We can compare the sheer magnitude of the disparity between the classes in Figure 1 with the following code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">plt<span style="color:#f92672">.</span>figure(figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">5</span>,<span style="color:#ae81ff">5</span>))
+fraud_no <span style="color:#f92672">=</span> df[df[<span style="color:#e6db74">&#39;Class&#39;</span>]<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]
+valid_no <span style="color:#f92672">=</span> df[df[<span style="color:#e6db74">&#39;Class&#39;</span>]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]
+plt<span style="color:#f92672">.</span>bar([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>], [fraud_no,valid_no] )
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;Fraudulent and Valid Transaction Amounts&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;Amount&#39;</span>)
+ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>gca()
+ax<span style="color:#f92672">.</span>set_xticks([<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>])
+ax<span style="color:#f92672">.</span>set_xticklabels([<span style="color:#e6db74">&#39;Fraudulent&#39;</span>, <span style="color:#e6db74">&#39;Valid&#39;</span>])
+plt<span style="color:#f92672">.</span>gcf()<span style="color:#f92672">.</span>subplots_adjust(left<span style="color:#f92672">=</span><span style="color:#ae81ff">0.25</span>)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;vald_fraudulent_amount&#39;</span>)
+</code></pre></div><p>We can look at our baseline results by plotting our training data when used in the different methods.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#Baseline, Logistic Regression</span>
+logreg <span style="color:#f92672">=</span> linear_model<span style="color:#f92672">.</span>LogisticRegression()
+logreg<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> logreg<span style="color:#f92672">.</span>decision_function(X_test)
+fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>])
+
+<span style="color:#75715e">#Baseline, Naive Bayes</span>
+bayes <span style="color:#f92672">=</span> naive_bayes<span style="color:#f92672">.</span>BernoulliNB()
+bayes<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> bayes<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>])
+
+<span style="color:#75715e">#Linear SVM </span>
+svc <span style="color:#f92672">=</span> svm<span style="color:#f92672">.</span>LinearSVC(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+svc<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> svc<span style="color:#f92672">.</span>decision_function(X_test)
+fpr[<span style="color:#ae81ff">3</span>], tpr[<span style="color:#ae81ff">3</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">3</span>], tpr[<span style="color:#ae81ff">3</span>])
+
+plt<span style="color:#f92672">.</span>figure(figsize <span style="color:#f92672">=</span> (<span style="color:#ae81ff">7</span>,<span style="color:#ae81ff">7</span>))
+lw <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;darkorange&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Decision Tree (area = </span><span style="color:#e6db74">%0.4f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">0</span>])
+plt<span style="color:#f92672">.</span>plot([<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>], [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;navy&#39;</span>, lw<span style="color:#f92672">=</span>lw, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>)
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;green&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Logistic Regression (area = </span><span style="color:#e6db74">%0.4f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">1</span>])
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;blue&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Naive Bayes (area = </span><span style="color:#e6db74">%0.4f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">2</span>])
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">3</span>], tpr[<span style="color:#ae81ff">3</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;red&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;SVM (area = </span><span style="color:#e6db74">%0.4f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">3</span>])
+plt<span style="color:#f92672">.</span>xlim([<span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">1.0</span>])
+plt<span style="color:#f92672">.</span>ylim([<span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">1.05</span>])
+plt<span style="color:#f92672">.</span>xlabel(<span style="color:#e6db74">&#39;False Positive Rate&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;True Positive Rate&#39;</span>)
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;ROC Baseline&#39;</span>)
+plt<span style="color:#f92672">.</span>legend(loc<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;lower right&#34;</span>)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;roc_baseline&#39;</span>)
+</code></pre></div><p>Next, if we want to create the confusion matrix from figure 3, we can do the following</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">fpr <span style="color:#f92672">=</span> dict()
+tpr <span style="color:#f92672">=</span> dict()
+roc_auc <span style="color:#f92672">=</span> dict()
+
+<span style="color:#75715e">#Baseline decision tree</span>
+tree <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>tree<span style="color:#f92672">.</span>DecisionTreeClassifier()
+tree<span style="color:#f92672">.</span>fit(X_train, y_train)
+
+y_score <span style="color:#f92672">=</span> tree<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>])
+
+cnf_matrix <span style="color:#f92672">=</span> confusion_matrix(y_test, y_score)
+plt<span style="color:#f92672">.</span>figure()
+plot_confusion_matrix(cnf_matrix, classes<span style="color:#f92672">=</span>class_names, title<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Confusion matrix, Baseline Decision Tree&#39;</span>)
+</code></pre></div><h2 id="sampling">Sampling</h2>
+<p>The first technique employed is sampling. There are a variety of sampling techniques that allow one to change the makeup of the training data. Many sampling methods have implementations where only original data is resampled as well as implementations where synthetic data is generated. For each sampling technique, the same four classifiers that were used in the baseline were used–Decision Tree, Logistic Regression, Linear SVM, and Naive Bayes.</p>
+<figure>
+    <img src="blog/ccfraud/confusion%20matrix.png"
+         alt="Figure 3: Baseline Decision Tree Confusion Matrix"/> <figcaption>
+            <p><em>Figure 3: Baseline Decision Tree Confusion Matrix</em></p>
+        </figcaption>
+</figure>
+
+<p>The first sampling category used was oversampling. Over-sampling modifies the minority class so that there is an even split between classes by adding more data from the minority class. In this example, that meant that there were now 284315 samples of both fraudulent and valid transactions. Two different oversampling techniques were used. The first technique was “simple” oversampling, where the minority class was simply repeated until it was the same size as the majority class. The second technique used was Synthetic Minority Oversampling Technique, or SMOTE (Chawla et al. (2002)). As the name suggests, this technique generates synthetic data from the minority class. The basic premise of SMOTE is that it randomly picks a point in the minority class, computes the k-nearest neighbors, and then adds k new points between the chosen point and the neighbors.</p>
+<p>The next sampling technique used was undersampling. Undersampling, in contrast with oversampling, ignores a large portion of the majority class so that the training data consists of an even split of class, albeit smaller than the original size and much smaller than an oversampled dataset. In this case, that meant that there were 492 fraudulent transactions and 492 valid transactions. The first undersampling technique was Random Undersampling. Transactions were selected from the majority class at random to create an undersampled set. The second undersampling technique was NearMiss-1. NearMiss-1 selects points from the majority class based on the smallest average distance of the n closest minority points. The third and final sampling technique used was a combination method of over- and undersampling. This algorithm, called SMOTETomek (Batista et al. (2004)), first oversampled the minority class using SMOTE. However, SMOTE is prone to create noise, or examples that are not particularly helpful. Tomek’s Links (Tomek (1976)) are an undersampling technique that removes the most difficult points to classifiy– the points that are closest with a point of the opposite class. Thus, after oversampling with SMOTE, the data is then undersampled with Tomek Links.</p>
+<p>I will show how to take the samples for each method, but I will only show the scoring for one method since it gets a bit repetitive.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># Simple Oversampling</span>
+y_train_pos <span style="color:#f92672">=</span> y_train[y_train <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>]
+y_train_over <span style="color:#f92672">=</span> y_train_pos
+X_train_pos <span style="color:#f92672">=</span> X_train[y_train <span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>]
+X_train_over <span style="color:#f92672">=</span> X_train_pos
+<span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(y_train<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">/</span>y_train_pos<span style="color:#f92672">.</span>shape[<span style="color:#ae81ff">0</span>]):
+    y_train_over <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>concat([y_train_over, y_train_pos])
+    X_train_over <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>concat([X_train_over, X_train_pos])
+X_train_res <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>concat([X_train_over, X_train])
+y_train_res <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>concat([y_train_over, y_train])
+
+<span style="color:#75715e">#Simple Oversampling decision tree</span>
+tree <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>tree<span style="color:#f92672">.</span>DecisionTreeClassifier()
+tree<span style="color:#f92672">.</span>fit(X_train_res, y_train_res)
+y_score <span style="color:#f92672">=</span> tree<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>])
+cnf_matrix <span style="color:#f92672">=</span> confusion_matrix(y_test, y_score)
+plt<span style="color:#f92672">.</span>figure()
+plot_confusion_matrix(cnf_matrix, classes<span style="color:#f92672">=</span>class_names, title<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Confusion matrix, ROS Decision Tree&#39;</span>)
+
+<span style="color:#75715e">#Simple Oversampling, Logistic Regression</span>
+logreg <span style="color:#f92672">=</span> linear_model<span style="color:#f92672">.</span>LogisticRegression()
+logreg<span style="color:#f92672">.</span>fit(X_train_res, y_train_res)
+y_score <span style="color:#f92672">=</span> logreg<span style="color:#f92672">.</span>decision_function(X_test)
+fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>])
+
+<span style="color:#75715e">#Simple Oversampling, Naive Bayes</span>
+bayes <span style="color:#f92672">=</span> naive_bayes<span style="color:#f92672">.</span>BernoulliNB()
+bayes<span style="color:#f92672">.</span>fit(X_train_res, y_train_res)
+y_score <span style="color:#f92672">=</span> bayes<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>])
+
+<span style="color:#75715e">#Linear SVM </span>
+svc <span style="color:#f92672">=</span> svm<span style="color:#f92672">.</span>LinearSVC(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+svc<span style="color:#f92672">.</span>fit(X_train_res, y_train_res)
+y_score <span style="color:#f92672">=</span> svc<span style="color:#f92672">.</span>decision_function(X_test)
+fpr[<span style="color:#ae81ff">3</span>], tpr[<span style="color:#ae81ff">3</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">3</span>], tpr[<span style="color:#ae81ff">3</span>])
+
+plt<span style="color:#f92672">.</span>figure(figsize <span style="color:#f92672">=</span> (<span style="color:#ae81ff">7</span>,<span style="color:#ae81ff">7</span>))
+lw <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;darkorange&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Decision Tree (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">0</span>])
+plt<span style="color:#f92672">.</span>plot([<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>], [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;navy&#39;</span>, lw<span style="color:#f92672">=</span>lw, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>)
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;green&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Logistic Regression (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">1</span>])
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;blue&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Naive Bayes (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">2</span>])
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">3</span>], tpr[<span style="color:#ae81ff">3</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;red&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;SVM (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">3</span>])
+plt<span style="color:#f92672">.</span>xlim([<span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">1.0</span>])
+plt<span style="color:#f92672">.</span>ylim([<span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">1.05</span>])
+plt<span style="color:#f92672">.</span>xlabel(<span style="color:#e6db74">&#39;False Positive Rate&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;True Positive Rate&#39;</span>)
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;ROC Simple Oversampling&#39;</span>)
+plt<span style="color:#f92672">.</span>legend(loc<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;lower right&#34;</span>)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;roc_simple_over&#39;</span>)
+</code></pre></div><p>This is the entire process to train the models using oversampling, fit the models to the training data, and scoring/plotting them all using the ROC.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># SMOTE</span>
+smote <span style="color:#f92672">=</span> imblearn<span style="color:#f92672">.</span>over_sampling<span style="color:#f92672">.</span>SMOTE(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+X_train_res, y_train_res <span style="color:#f92672">=</span> smote<span style="color:#f92672">.</span>fit_sample(X_train, y_train)
+
+<span style="color:#75715e"># Random Under Sampling</span>
+rus <span style="color:#f92672">=</span> imblearn<span style="color:#f92672">.</span>under_sampling<span style="color:#f92672">.</span>RandomUnderSampler(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+X_train_res, y_train_res <span style="color:#f92672">=</span> rus<span style="color:#f92672">.</span>fit_sample(X_train, y_train)
+
+<span style="color:#75715e"># Near Miss</span>
+nm <span style="color:#f92672">=</span> imblearn<span style="color:#f92672">.</span>under_sampling<span style="color:#f92672">.</span>NearMiss(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+X_train_res, y_train_res <span style="color:#f92672">=</span> nm<span style="color:#f92672">.</span>fit_sample(X_train, y_train)
+
+<span style="color:#75715e"># &#34;Combined&#34; Methods, SMOTETomek</span>
+smt <span style="color:#f92672">=</span> imblearn<span style="color:#f92672">.</span>combine<span style="color:#f92672">.</span>SMOTETomek(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+X_train_res, y_train_res <span style="color:#f92672">=</span> smt<span style="color:#f92672">.</span>fit_sample(X_train, y_train)
+</code></pre></div><h2 id="anomaly-detection">Anomaly Detection</h2>
+<p>The next technique used is anomaly detection. In this method, it is assumed that the data is only one class, and the minority class are outliers. If the classifier  an correctly predict what data points are noise, then it can correctly predict which class a new data point belongs to. However, if one tries to clear too much noise, one risks grouping many of the majority class in with the minority class in order to have an outlier-free dataset.</p>
+<p>The first anomaly detection method used was One-Class SVM (Schölkopf et al. (2001)). One-Class SVM is an unsupervised method which fits a decision function to the data. When new data arrives, it classified as either similar or different from the training set.</p>
+<p>The second method used was Elliptic Envelope(Rousseeuw and Driessen (1999)). Elliptic Envelope assumes that the data is Gaussian distributed, and tries to fit an ellipse to the central data points, ignoring points outside of the ellipse. The Mahalanobis distance is used to measure how much of an outlier a point is.</p>
+<p>The third method used was Isolation Forest (Liu et al. (2008)). Isolation Forest is an ensemble anomaly detection method, that isolates observations by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature. The number of splits required to isolate a sample is equivalent to the path length from the root node to the terminating node, and this is the measure of normality and the decision function.</p>
+<p>Here is how I used One-Class SVM</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#Convert training data to OneClassSVM form </span>
+rus <span style="color:#f92672">=</span> imblearn<span style="color:#f92672">.</span>under_sampling<span style="color:#f92672">.</span>RandomUnderSampler(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>)
+X_train_res, y_train_res <span style="color:#f92672">=</span> rus<span style="color:#f92672">.</span>fit_sample(X_train, y_train)
+
+fpr <span style="color:#f92672">=</span> dict()
+tpr <span style="color:#f92672">=</span> dict()
+roc_auc <span style="color:#f92672">=</span> dict()
+<span style="color:#75715e"># Set training data</span>
+X_train_anomaly <span style="color:#f92672">=</span> X_train_res
+y_train_anomaly <span style="color:#f92672">=</span> y_train_res
+X_test_anomaly <span style="color:#f92672">=</span> X_test
+y_test_anomaly <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> x<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> y_test]
+<span style="color:#75715e"># Fit training data</span>
+svm_rbf <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>svm<span style="color:#f92672">.</span>OneClassSVM(kernel <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;rbf&#39;</span>)
+svm_rbf<span style="color:#f92672">.</span>fit(X_train_anomaly, y_train_anomaly)
+<span style="color:#75715e"># Score the model</span>
+y_score <span style="color:#f92672">=</span> svm_rbf<span style="color:#f92672">.</span>decision_function(X_test_anomaly)
+fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test_anomaly[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>])
+</code></pre></div><p>Here is the implementation of Elliptic Envelope</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#transform y_val</span>
+X_train_ee <span style="color:#f92672">=</span> X_train
+y_train_ee <span style="color:#f92672">=</span> y_train
+X_test_ee <span style="color:#f92672">=</span> X_test
+<span style="color:#75715e">#need to map y_val to inliner/outlier (1 for inliner(real class 0), -1 for outlier(real class 1))</span>
+y_test_ee <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> x<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> y_test]
+ee <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>covariance<span style="color:#f92672">.</span>EllipticEnvelope(assume_centered <span style="color:#f92672">=</span> False, random_state <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>)
+ee<span style="color:#f92672">.</span>fit(X_train_ee, y_train_ee)
+<span style="color:#75715e">#Measure auc roc</span>
+y_score <span style="color:#f92672">=</span> ee<span style="color:#f92672">.</span>decision_function(X_test_ee)
+fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test_ee[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>])
+</code></pre></div><p>Finally, the implementation of Isolation Forest</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">X_train_anomaly <span style="color:#f92672">=</span> X_train
+y_train_anomaly <span style="color:#f92672">=</span> y_train<span style="color:#75715e">#[1 if x == 0 else -1 for x in y_train2]</span>
+X_val_anomaly <span style="color:#f92672">=</span> X_train
+y_val_anomaly <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> x <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> y_train]
+
+iso <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>ensemble<span style="color:#f92672">.</span>IsolationForest()
+iso<span style="color:#f92672">.</span>fit(X_train_anomaly)
+
+y_score <span style="color:#f92672">=</span> iso<span style="color:#f92672">.</span>predict(X_val_anomaly)
+fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], _ <span style="color:#f92672">=</span> roc_curve(y_val_anomaly[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>])
+</code></pre></div><p>We can plot the results of these three methods like before</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">plt<span style="color:#f92672">.</span>figure(figsize <span style="color:#f92672">=</span> (<span style="color:#ae81ff">7</span>,<span style="color:#ae81ff">7</span>))
+lw <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;pink&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Elliptic Envelope (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">0</span>])
+plt<span style="color:#f92672">.</span>plot([<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>], [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;navy&#39;</span>, lw<span style="color:#f92672">=</span>lw, linestyle<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;--&#39;</span>)
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;teal&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Isolation Forest (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">1</span>])
+plt<span style="color:#f92672">.</span>plot(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], color<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;purple&#39;</span>,
+         lw<span style="color:#f92672">=</span>lw, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;One-Class SVM (area = </span><span style="color:#e6db74">%0.2f</span><span style="color:#e6db74">)&#39;</span> <span style="color:#f92672">%</span> roc_auc[<span style="color:#ae81ff">2</span>])
+plt<span style="color:#f92672">.</span>xlim([<span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">1.0</span>])
+plt<span style="color:#f92672">.</span>ylim([<span style="color:#ae81ff">0.0</span>, <span style="color:#ae81ff">1.05</span>])
+plt<span style="color:#f92672">.</span>xlabel(<span style="color:#e6db74">&#39;False Positive Rate&#39;</span>)
+plt<span style="color:#f92672">.</span>ylabel(<span style="color:#e6db74">&#39;True Positive Rate&#39;</span>)
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;ROC Anomaly Detection&#39;</span>)
+plt<span style="color:#f92672">.</span>legend(loc<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;lower right&#34;</span>)
+plt<span style="color:#f92672">.</span>savefig(<span style="color:#e6db74">&#39;roc_anomaly&#39;</span>)
+</code></pre></div><h2 id="cost-sensitive-training">Cost-Sensitive Training</h2>
+<p>Cost-sensitive training is also employed, where misclassifications of the minority class are more heavily penalized than misclassifications of the majority class. Three of the four classifiers used in the baseline and sampling sections are used here– Logistic Regression, One-Class SVM, and Decision Tree. Naive Bayes has no simple method of introducing a cost matrix. Since we have 284315 valid transactions, and 492 fraudulent transactions, the ratio 284315:492 is equivalent to 580:1, so we used a cost of 1 for misclassification of the valid transactions, and 580 for the cost of misclassification of the fraud transactions.</p>
+<p>How did we implement it? As follows</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># Weights proportional to imbalance</span>
+weights <span style="color:#f92672">=</span> {<span style="color:#ae81ff">0</span>: <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>: <span style="color:#ae81ff">580</span>}
+<span style="color:#75715e"># Weighted decision tree</span>
+tree <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>tree<span style="color:#f92672">.</span>DecisionTreeClassifier(class_weight <span style="color:#f92672">=</span> weights)
+tree<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> tree<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>])
+
+<span style="color:#75715e"># Weighted Logistic Regression</span>
+logreg <span style="color:#f92672">=</span> linear_model<span style="color:#f92672">.</span>LogisticRegression(class_weight <span style="color:#f92672">=</span> weights)
+logreg<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> logreg<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>])
+
+<span style="color:#75715e">#Weighted Linear SVM </span>
+svc <span style="color:#f92672">=</span> svm<span style="color:#f92672">.</span>LinearSVC(random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>, class_weight <span style="color:#f92672">=</span> weights)
+svc<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> svc<span style="color:#f92672">.</span>decision_function(X_test)
+fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>])
+</code></pre></div><h2 id="ensemble-methods">Ensemble Methods</h2>
+<p>Several ensemble methods are used to build robust classifiers. These classifiers are training on the original data, and three different ensemble methods are used–Random Forest, AdaBoost, and Gradient Boosting. The element of randomness including in ensemble methods is hoped to improve the performance of the classifiers.</p>
+<p>The ensemble methods were implemented as follows.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># Random Forest</span>
+rfc <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>ensemble<span style="color:#f92672">.</span>RandomForestClassifier(criterion <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;entropy&#39;</span>, max_features <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.5</span>)
+rfc<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> rfc<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">0</span>], tpr[<span style="color:#ae81ff">0</span>])
+
+<span style="color:#75715e">#AdaBoost</span>
+ada <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>ensemble<span style="color:#f92672">.</span>AdaBoostClassifier(random_state <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>)
+ada<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> ada<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">1</span>], tpr[<span style="color:#ae81ff">1</span>])
+
+<span style="color:#75715e"># Gradient Boosting</span>
+grad <span style="color:#f92672">=</span> sklearn<span style="color:#f92672">.</span>ensemble<span style="color:#f92672">.</span>GradientBoostingClassifier(random_state <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>)
+grad<span style="color:#f92672">.</span>fit(X_train, y_train)
+y_score <span style="color:#f92672">=</span> grad<span style="color:#f92672">.</span>predict_proba(X_test)[:,<span style="color:#ae81ff">1</span>]
+fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>], _ <span style="color:#f92672">=</span> roc_curve(y_test[:], y_score[:])
+roc_auc[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> auc(fpr[<span style="color:#ae81ff">2</span>], tpr[<span style="color:#ae81ff">2</span>])
+</code></pre></div><h1 id="results">Results</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Decision Tree</th>
+<th>Naive Bayes</th>
+<th>Logistic Regression</th>
+<th>Linear SVM</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Baseline</strong></td>
+<td>0.892</td>
+<td>0.966</td>
+<td>0.976</td>
+<td>0.971</td>
+</tr>
+<tr>
+<td><strong>SMOTE</strong></td>
+<td>0.882</td>
+<td>0.967</td>
+<td>0.979</td>
+<td>0.982</td>
+</tr>
+<tr>
+<td><strong>Simple Oversampling</strong></td>
+<td>0.872</td>
+<td>0.966</td>
+<td>0.979</td>
+<td>0.982</td>
+</tr>
+<tr>
+<td><strong>NearMiss-1</strong></td>
+<td>0.662</td>
+<td>0.876</td>
+<td>0.900</td>
+<td>0.826</td>
+</tr>
+<tr>
+<td><strong>Random Undersampling</strong></td>
+<td>0.891</td>
+<td>0.964</td>
+<td>0.980</td>
+<td>0.826</td>
+</tr>
+<tr>
+<td><strong>SMOTETomeks</strong></td>
+<td>0.882</td>
+<td>0.967</td>
+<td>0.979</td>
+<td>0.982</td>
+</tr>
+</tbody>
+</table>
+<p><em>Figure 4: All Sampling Methods, Area under ROC curve</em></p>
+<p>The results shown here are the ROC curves for each classifier, showing the tradeoff between true positive rate (TPR) and the false positive rate (FPR). Confusion matrices were also studied. Decision trees cannot produce ROC curves, and as such are represented as straight lines on the chart.</p>
+<h2 id="baseline">Baseline</h2>
+<p>The baseline measurements were taken for Decision Trees, Logistic Regression, Naive Bayes, and Linear SVM. Logistic Regression Performed the best on the test set. You can see the scores in Figure 3 and the ROC curve in Figure 4.</p>
+<h2 id="sampling-1">Sampling</h2>
+<p>The ROC curves and areas were computed for all the different sampling methods–Simple Oversampling, SMOTE, Random Undersampling, NearMiss-1, and SMOTETomeks. The Simple Oversampling and SMOTE scores were nearly identical, implying that there is not much advantage to using an algorithm like SMOTE for this dataset. Another interesting conclusion is that Random Undersampling performed significantly better than NearMiss-1 in every single classifier. SMOTETomeks did not perform significantly better than SMOTE or Simple Oversampling.</p>
+<p><figure>
+    <img src="blog/ccfraud/baseline.png"
+         alt="Figure 5: Baseline"/> <figcaption>
+            <p><em>Figure 5: Baseline</em></p>
+        </figcaption>
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/smotetomek.png"
+         alt="Figure 5: SMOTETomek"/> <figcaption>
+            <p><em>Figure 5: SMOTETomek</em></p>
+        </figcaption>
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/nearmiss-1.png"
+         alt="Figure 5: NearMiss-1"/> <figcaption>
+            <p><em>Figure 5: NearMiss-1</em></p>
+        </figcaption>
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/random%20undersampling.png"
+         alt="Figure 5: Random Undersampling"/> <figcaption>
+            <p><em>Figure 5: Random Undersampling</em></p>
+        </figcaption>
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/smote.png"
+         alt="Figure 5: SMOTE"/> <figcaption>
+            <p><em>Figure 5: SMOTE</em></p>
+        </figcaption>
+</figure>
+
+<figure>
+    <img src="blog/ccfraud/simple%20oversampling.png"
+         alt="Figure 5: Simple Oversampling"/> <figcaption>
+            <p><em>Figure 5: Simple Oversampling</em></p>
+        </figcaption>
+</figure>
+</p>
+<h2 id="anomaly-detection-1">Anomaly Detection</h2>
+<figure>
+    <img src="blog/ccfraud/anomoly.png"
+         alt="Figure 6: Anomaly Detection Methods under ROC Curve"/> <figcaption>
+            <p><em>Figure 6: Anomaly Detection Methods under ROC Curve</em></p>
+        </figcaption>
+</figure>
+
+<table>
+<thead>
+<tr>
+<th>Classifier</th>
+<th align="center">Area Under ROC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One-Class SVM</td>
+<td align="center">0.872</td>
+</tr>
+<tr>
+<td>Elliptic Envelope</td>
+<td align="center">0.949</td>
+</tr>
+<tr>
+<td>Isolation Forest</td>
+<td align="center">0.908</td>
+</tr>
+</tbody>
+</table>
+<p><em>Figure 7: Anomaly Detection Methods, area under ROC Curve</em></p>
+<p>Figure 6 and 7 show the performance of the three anomaly detection methods. They performed well, but not as well as even the baseline Logistic Regression or Linear SVM. Of the three methods, Elliptic Envelope performed the best. However, these methods all take considerably longer to fit data to than the baseline measurements, so they are inferior to other classifiers on this dataset.</p>
+<h2 id="cost-sensitive-training-1">Cost-Sensitive Training</h2>
+<p>For the cost-sensitive methods, a cost matrix was given to the three baseline classifiers that can utilize cost matrices. This did not show a significant deviation from the baseline performance. Even with significantly modified cost matrices, there was no discernable change in the area under the ROC curve. These results can be seen in Figures 8 and 9.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Classifier</th>
+<th align="center">Area Under ROC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">Decision Tree</td>
+<td align="center">0.857</td>
+</tr>
+<tr>
+<td align="left">Logistic Regression</td>
+<td align="center">0.980</td>
+</tr>
+<tr>
+<td align="left">Linear SVM</td>
+<td align="center">0.954</td>
+</tr>
+</tbody>
+</table>
+<p><em>Figure 8: Cost-Sensitive Methods, area under ROC Curve</em>
+<figure>
+    <img src="blog/ccfraud/cost%20sensitive.png"
+         alt="Figure 9: Cost-Sensitive Methods ROC Curve"/> <figcaption>
+            <p><em>Figure 9: Cost-Sensitive Methods ROC Curve</em></p>
+        </figcaption>
+</figure>
+</p>
+<h2 id="ensemble">Ensemble</h2>
+<p>The ensemble methods had a wide range of performances. Gradient Boosting was one of the worst methods measured, with a ROC area of 0.786, while AdaBoost was the best method measured, with a ROC area of 0.983. AdaBoost is a very powerful algorithm, so this is not a surprising result. Random Forest did a fine job– better than Gradient Boosting but worse than AdaBoost. One can see the results in the ROC curve and table of Figures 10 and 11.</p>
+<table>
+<thead>
+<tr>
+<th>Classifier</th>
+<th align="center">Area Under ROC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Random Forest</td>
+<td align="center">0.857</td>
+</tr>
+<tr>
+<td>Elliptic Envelope</td>
+<td align="center">0.980</td>
+</tr>
+<tr>
+<td>Gradient Boosting</td>
+<td align="center">0.954</td>
+</tr>
+</tbody>
+</table>
+<p><em>Figure 10: Ensemble Methods, Area under ROC Curve</em>
+<figure>
+    <img src="blog/ccfraud/ensemble.png"
+         alt="Figure 11: Ensemble Methods ROC Curve"/> <figcaption>
+            <p><em>Figure 11: Ensemble Methods ROC Curve</em></p>
+        </figcaption>
+</figure>
+</p>
+<h1 id="discussion">Discussion</h1>
+<p>These results are not surprising, although the performance of each method cannot safely be extrapolated to other datasets, only this credit card dataset, and perhaps other credit card datasets. There are many different classifiers, and while they have roughly similar ROC areas, they all have different misclassification at different thresholds. The optimal model for this specific scenario could be obtained by examining the models that were created, and asking the client what is more important–misclassifying fraudulent charges of misclassifying valid charges. With that known, the model that is most useful to the client could produced.</p>
+<p>Some potential problems arise with this project. First, we need to question the accuracy of the dataset itself. Credit card fraud is very hard to detect, and it is possible that there are still undetected instances of fraud within our dataset. If that is the case, we will never be able to detect them in the future, because we have trained our classifier to interpret them as valid transactions. Next, we should think about some way to implement a changing model, as credit card fraud itself is constantly changing. If the model cannot update, it will soon be obsolete. In the future, I would like to run all of these methods multiple times and take the average performance. After running 20 or 30 times, we could be sure that our results are representative, especially for models that change every time, like ensemble methods.</p>
+<p>Imbalanced datasets is a popular research area, so there is much research currently happening on different sampling algorithms and other methods for building models. I have several ideas for further research on this data set. Most of these are things that I would have implemented if I had the time. First, I would implement XGBoost as another ensemble method. XGBoost is a distributed gradient boosting method that is very powerful. Second, I would be interesting in implement a neural network or deep learning solution. Several neural network papers were written in the 1990s about imbalanced problems, but computing power has expanded greatly since then, and there have been recent advances, like densely connected networks or deep networks, that would be very interesting. Third, I would be interest in implementing holdout, where some of the data is purposely withheld from the model to make it more robust. This is very similar to the notion of dropout in neural networks. Fourth, I would like to implement a multi-classification solution, where the results from several completely different classifiers are pooled and evaluated. Fifth, I would like to also evaluate, or at least compare other performance metrics like precision, recall, F1, or Cohen’s kappa. Lastly, I would like to try implementing a decision tree using the Hellinger distance, like in Cieslak et al.(2012).</p>
+<h1 id="sources">Sources</h1>
+<p>Aggarwal, C. C. (2015). Data mining: the textbook. Springer.</p>
+<p>Aleskerov, E., Freisleben, B., and Rao, B. (1997). Cardwatch: A neural network based database mining system for credit card fraud detection. In Computational Intelligence for Financial Engineering (CIFEr), 1997., Proceedings of the IEEE/IAFE 1997, pages 220–226. IEEE.</p>
+<p>Barua, S., Islam, M. M., Yao, X., and Murase, K. (2014). Mwmote–majority weighted minority oversampling technique for imbalanced data set learning. IEEE Transactions on Knowledge and Data Engineering, 26(2):405–425.</p>
+<p>Batista, G. E., Prati, R. C., and Monard, M. C. (2004). A study of the behavior of several methods for balancing machine learning training data. ACM SIGKDD explorations newsletter, 6(1):20–29.</p>
+<p>Brause, R., Langsdorf, T., and Hepp, M. (1999). Neural data mining for credit card fraud detection. In Tools with Artificial Intelligence, 1999. Proceedings. 11th IEEE International Conference on, pages 103–106. IEEE.</p>
+<p>Chan, P. K., Fan, W., Prodromidis, A. L., and Stolfo, S. J. (1999). Distributed data mining in credit card fraud detection. IEEE Intelligent Systems and Their Applications, 14(6):67–74.</p>
+<p>Chan, P. K. and Stolfo, S. J. (1998). Toward scalable learning with non-uniform class and cost distributions: A case study in credit card fraud detection. In KDD, volume 98, pages 164–168.</p>
+<p>Chawla, N. V. (2009). Data mining for imbalanced datasets: An overview. In Data mining and knowledge discovery handbook, pages 875–886. Springer.</p>
+<p>Chawla, N. V., Bowyer, K. W., Hall, L. O., and Kegelmeyer, W. P. (2002). Smote: synthetic minority over-sampling technique. Journal of artificial intelligence research, 16:321–357.</p>
+<p>Cieslak, D. A., Hoens, T. R., Chawla, N. V., and Kegelmeyer, W. P. (2012). Hellinger distance decision trees are robust and skew-insensitive. Data Mining and Knowledge Discovery, 24(1):136–158.</p>
+<p>Dal Pozzolo, A., Caelen, O., Johnson, R. A., and Bontempi, G. (2015). Calibrating probability with undersampling for unbalanced classification. In Computational Intelligence, 2015 IEEE Symposium Series on, pages 159–166. IEEE.</p>
+<p>Dal Pozzolo, A., Caelen, O., Le Borgne, Y.-A., Waterschoot, S., and Bontempi, G. (2014). Learned lessons in credit card fraud detection from a practitioner perspective. Expert systems with applications, 41(10):4915–4928.</p>
+<p>Ghosh, S. and Reilly, D. L. (1994). Credit card fraud detection with a neural-network. In System Sciences, 1994. Proceedings of the Twenty-Seventh Hawaii International Conference on, volume 3, pages 621–630. IEEE.</p>
+<p>He, H. and Garcia, E. A. (2009). Learning from imbalanced data. IEEE Transactions on knowledge and data engineering, 21(9):1263–1284.</p>
+<p>11Jeni, L. A., Cohn, J. F., and De La Torre, F. (2013). Facing imbalanced data–recommendations for the use of performance metrics. In Affective Computing and Intelligent Interaction (ACII), 2013 Humaine Association Conference on, pages 245–251. IEEE.</p>
+<p>Liu, F. T., Ting, K. M., and Zhou, Z.-H. (2008). Isolation forest. In Data Mining, 2008. ICDM’08. Eighth IEEE International Conference on, pages 413–422. IEEE.</p>
+<p>Mahmoudi, N. and Duman, E. (2015). Detecting credit card fraud by modified fisher discriminant analysis. Expert Systems with Applications, 42(5):2510–2516.</p>
+<p>Maldonado, S., Weber, R., and Famili, F. (2014). Feature selection for high-dimensional class-imbalanced data sets using support vector machines. Information Sciences, 286:228–246.</p>
+<p>Provost, F. (2000). Machine learning from imbalanced data sets 101. In Proceedings of the AAAI2000 workshop on imbalanced data sets, pages 1–3.</p>
+<p>Rousseeuw, P. J. and Driessen, K. V. (1999). A fast algorithm for the minimum covariance determinant estimator. Technometrics, 41(3):212–223.</p>
+<p>Schölkopf, B., Platt, J. C., Shawe-Taylor, J., Smola, A. J., and Williamson, R. C. (2001). Estimating the support of a high-dimensional distribution. Neural computation, 13(7):1443–1471.</p>
+<p>Sun, Z., Song, Q., Zhu, X., Sun, H., Xu, B., and Zhou, Y. (2015). A novel ensemble method for classifying imbalanced data. Pattern Recognition, 48(5):1623–1637.</p>
+<p>Tomek, I. (1976). An experiment with the edited nearest-neighbor rule. IEEE Transactions on systems, Man, and Cybernetics, (6):448–452.</p>
+
+  </div>
+</section>
+<section id="tag-pane" class="row meta">
+  
+  <div class="col-md-12">
+    <h6 class="text-left meta">
+      
+      
+      
+      TAGS:
+      
+      
+      <a class="meta" href="https://www.samcook.dev/tags/data-science">DATA SCIENCE</a>, 
+      
+      <a class="meta" href="https://www.samcook.dev/tags/technology">TECHNOLOGY</a>
+      
+      
+      
+    </h6>
+  </div>
+  
+</section>
+
+
+
+
+
+
+
+
+<section id="menu-pane" class="row menu text-center">
+  
+  
+  <span><a class="menu-item" href="https://www.samcook.dev/blog/sibilant/">&lt; prev | </a></span>
+  
+  
+  <span><a class="menu-item" href="https://www.samcook.dev/blog">blog</a></span>
+  
+  
+  
+  <h4 class="text-center"><a class="menu-item" href="https://www.samcook.dev">home</a></h4>
+</section>
+
+
+
+<footer class="row text-center footer">
+  <hr />
+  
+  <h6 class="text-center copyright">© 2020. Sam Cook. <a href="http://creativecommons.org/licenses/by/3.0/">Some Rights Reserved</a>.</h6>
+  
+  
+</footer>
+
+</div>
+
+
+
+
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
+
+
